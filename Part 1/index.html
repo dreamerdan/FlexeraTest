@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Flexera Test</title>
+    <script src= "https://unpkg.com/react@16/umd/react.production.min.js"></script>
+    <script src= "https://unpkg.com/react-dom@16/umd/react-dom.production.min.js"></script>
+    <!-- Load Babel Compiler -->
+    <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>   
+
+</head>
+<body>
+
+<div id='root'></div>
+
+<script  type="text/babel">
+
+class ContactForm extends React.Component {
+    state = {
+	    Id: '',
+        Name: '',
+        Age: '',
+        Balance: '',
+        Email: '',
+        Address: '',
+    }
+
+    handleFormSubmit( ) {        
+        console.log(this.state);		
+		
+		fetch('http://localhost:8080/app/people', {
+            method: "POST",
+            body: JSON.stringify({
+                Id: this.state.Id,
+                Name: this.state.Name,
+                Age: this.state.Age,
+                Balance: this.state.Balance,
+                Email: this.state.Email,
+                Address: this.state.Address,
+                Checked: 0
+            })
+        })
+		.then(function (response) {
+            //handle success
+            console.log(response)
+        })
+        .catch(function (response) {
+            //handle error
+            console.log(response)
+        });
+		
+    }
+		
+    render(){
+        return (
+        <form>
+            <label>Id</label>
+			<input type="text" name="Id" value={this.state.Id}
+                onChange={e => this.setState({ Id: e.target.value })}/>
+
+			<label>Name</label>
+            <input type="text" name="name" value={this.state.Name}
+                onChange={e => this.setState({ Name: e.target.value })}/>
+
+            <label>Age</label>
+            <input type="text" name="age" value={this.state.Age}
+                onChange={e => this.setState({ Age: e.target.value })}/>
+
+            <label>Balance</label>
+            <input type="text" name="balance" value={this.state.Balance}
+                onChange={e => this.setState({ Balance: e.target.value })}/>
+
+            <label>Email</label>
+            <input type="email" name="email" value={this.state.Email}
+                onChange={e => this.setState({ Email: e.target.value })}/>
+
+            <label>Address</label>
+            <input type="text" name="address" value={this.state.Address}
+                onChange={e => this.setState({ Address: e.target.value })}/>
+
+            <input type="submit" onClick={this.handleFormSubmit.bind(this)} value="Create Contact" />
+        </form>);
+    }
+}
+
+class App extends React.Component {
+  state = {
+    contacts: [],
+	checked: []
+  }
+  render() {
+    return (
+        <React.Fragment>
+        <h1>Flexera Test - Contact Management</h1>
+        <table border='1' width='100%' >
+        <tr>
+		    <th>Id</th>
+            <th>Name<input type="button" value="^" onClick={() => {this.onSort("Name")}}/></th>
+            <th>Age</th>
+            <th>Balance</th>
+            <th>Email<input type="button" value="^" onClick={() => {this.onSort("Email")}}/></th>
+            <th>Address</th>     
+			<th>Checked</th>     
+        </tr>
+
+        {this.state.contacts.map((contact) => (
+        <tr>
+            <td>{ contact.Id }</td>
+            <td>{ contact.Name }</td>
+            <td>{ contact.Age }</td>
+            <td>{ contact.Balance }</td>
+            <td>{ contact.Email }</td>
+			<td>{ contact.Address }</td>
+			<td><input type="checkbox" value={ contact.Id } checked={ contact.Checked } onChange={this.onChange.bind(this) } /></td>
+			<td><input type="Button" id={ contact.Id } value = "Delete" onClick={this.onClick.bind(this) } /></td>
+        </tr>
+        ))}
+        </table>
+		
+		<ContactForm />
+        </React.Fragment>
+    );
+  }
+  
+  
+  
+  componentDidMount() {
+       this.loadData()  
+  }
+  
+  
+   loadData () {
+       fetch('http://localhost:8080/app/people')
+            .then(res => res.json())
+            .then(json => {
+                this.setState({
+                    contacts: json,
+                });
+            })  
+   }
+  
+  onChange(e) {    	
+	fetch('http://localhost:8080/app/people/' + e.target.value, {
+            method: "PUT",            
+            })     
+			
+	this.loadData()
+  }   
+    
+  onClick(e) {
+	fetch('http://localhost:8080/app/people/' + e.target.id, {
+            method: "DELETE",            
+            })     
+			
+	this.loadData()
+  } 
+
+  onSort(sort) {
+	    fetch('http://localhost:8080/app/people?sort='+sort)
+			.then(res => res.json())
+			.then(json => {
+				this.setState({
+					contacts: json,
+				});
+			})  
+	this.loadData()
+  }	
+  
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
+
+</body>
+</html>
